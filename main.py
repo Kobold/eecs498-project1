@@ -31,6 +31,8 @@ def insert(tree, x_new, y_new):
 def drawT(tree):
     if len(tree) == 1:
         x, y, width, height = tree[0]
+        
+        p.fill(average(IMAGE, tree[0]))
         p.rect(x, y, width, height)
     else:
         _, tl, tr, bl, br = tree
@@ -39,23 +41,43 @@ def drawT(tree):
         drawT(bl)
         drawT(br)
 
+def averageColors(xs):
+    r, g, b = 0, 0, 0
+    count = 0
+    
+    for pixel in xs:
+        r += p.red(pixel)
+        g += p.green(pixel)
+        b += p.blue(pixel)
+        count += 1
+    
+    return p.color(r / count, g / count, b / count)
+    
+
+def average(image, area):
+    box_x, box_y, width, height = area
+    colors = (image.pixels[y * image.width + x] for y in xrange(box_y, box_y + height)
+                                                for x in xrange(box_x, box_x + width))
+    return averageColors(colors)
+
 
 TREE = [(0, 0, 500, 500)]
 
 class HelloProcessing(PApplet):
 
     def setup(self):
-        global p
+        global IMAGE, p
         p = self
         p.size(500, 500)
-        p.frameRate(1)
+        p.frameRate(3)
+        
+        IMAGE = p.loadImage('michigan.jpg')
+        IMAGE.loadPixels()
     
     def draw(self):
         global TREE
-        p.fill(0)
-        p.stroke(255)
+        p.noStroke()
         drawT(TREE)
-        
         TREE = insert(TREE, p.random(500), p.random(500))
 
 
