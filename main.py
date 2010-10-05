@@ -1,5 +1,6 @@
 from javax.swing import JFrame
 from processing.core import PApplet
+import random
 
 def in_box(x, y, (x_box, y_box, width, height)):
     return (x_box < x < x_box + width) and (y_box < y < y_box + height)
@@ -78,7 +79,9 @@ class HelloProcessing(PApplet):
         global TREE
         p.noStroke()
         drawT(TREE)
-        TREE = insert(TREE, p.random(500), p.random(500))
+        r1 = random.normalvariate(350, 100)
+        r2 = random.normalvariate(350, 100)
+        TREE = insert(TREE, p.constrain(r1, 0, 499), p.constrain(r2, 0, 499))
 
 
 if __name__ == '__main__':
