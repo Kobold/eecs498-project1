@@ -8,25 +8,37 @@ def in_box(x, y, (x_box, y_box, width, height)):
 def insert(tree, x_new, y_new):
     if len(tree) == 1:
         x, y, width, height = tree[0]
+        
+        if width < 2:
+            return (tree, tree)
+        
         mid_x = x + width / 2.0
         mid_y = y + height / 2.0
-        return [tree[0],
-                [(x,     y,     width / 2.0, height / 2.0)],
-                [(x,     mid_y, width / 2.0, height / 2.0)],
-                [(mid_x, mid_y, width / 2.0, height / 2.0)],
-                [(mid_x, y,     width / 2.0, height / 2.0)]]
+        subtree = [tree[0],
+                   [(x,     y,     width / 2.0, height / 2.0)],
+                   [(x,     mid_y, width / 2.0, height / 2.0)],
+                   [(mid_x, mid_y, width / 2.0, height / 2.0)],
+                   [(mid_x, y,     width / 2.0, height / 2.0)]]
+        return (subtree, subtree)
     else:
         main_box, tl, tr, bl, br = tree
         
         if in_box(x_new, y_new, tl[0]):
-            return [main_box, insert(tl, x_new, y_new), tr, bl, br]
+            tl_new, updated = insert(tl, x_new, y_new)
+            return ([main_box, tl_new, tr, bl, br], updated)
         elif in_box(x_new, y_new, tr[0]):
-            return [main_box, tl, insert(tr, x_new, y_new), bl, br]
+            tr_new, updated = insert(tr, x_new, y_new)
+            return ([main_box, tl, tr_new, bl, br], updated)
         elif in_box(x_new, y_new, bl[0]):
-            return [main_box, tl, tr, insert(bl, x_new, y_new), br]
+            bl_new, updated = insert(bl, x_new, y_new)
+            return ([main_box, tl, tr, bl_new, br], updated)
         elif in_box(x_new, y_new, br[0]):
-            return [main_box, tl, tr, bl, insert(br, x_new, y_new)]
+            br_new, updated = insert(br, x_new, y_new)
+            return ([main_box, tl, tr, bl, br_new], updated)
         else:
+            from pprint import pprint
+            print 'tree', x_new, y_new
+            pprint(tree)
             assert False
 
 def drawT(tree):
@@ -70,18 +82,19 @@ class HelloProcessing(PApplet):
         global IMAGE, p
         p = self
         p.size(500, 500)
-        p.frameRate(3)
+        p.frameRate(10)
         
         IMAGE = p.loadImage('michigan.jpg')
         IMAGE.loadPixels()
     
     def draw(self):
         global TREE
-        p.noStroke()
-        drawT(TREE)
         r1 = random.normalvariate(350, 100)
         r2 = random.normalvariate(350, 100)
-        TREE = insert(TREE, p.constrain(r1, 0, 499), p.constrain(r2, 0, 499))
+        TREE, updated = insert(TREE, p.constrain(r1, 1, 499), p.constrain(r2, 1, 499))
+        
+        p.noStroke()
+        drawT(updated)
 
 
 if __name__ == '__main__':
