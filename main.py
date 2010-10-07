@@ -1,6 +1,9 @@
 from javax.swing import JFrame
 from processing.core import PApplet
+import csv
 import random
+
+READER = None
 
 def in_box(x, y, (x_box, y_box, width, height)):
     return (x_box < x < x_box + width) and (y_box < y < y_box + height)
@@ -79,22 +82,35 @@ TREE = [(0, 0, 500, 500)]
 class HelloProcessing(PApplet):
 
     def setup(self):
-        global IMAGE, p
+        global IMAGE, READER, p
         p = self
         p.size(500, 500)
         p.frameRate(10)
         
         IMAGE = p.loadImage('michigan.jpg')
         IMAGE.loadPixels()
+        
+        READER = csv.reader(file('crashes.csv'))
     
     def draw(self):
-        global TREE
+        global TREE, READER
+        date, location = READER.next()
+        
         r1 = random.normalvariate(350, 100)
         r2 = random.normalvariate(350, 100)
         TREE, updated = insert(TREE, p.constrain(r1, 1, 499), p.constrain(r2, 1, 499))
         
         p.noStroke()
+        p.rectMode(p.CORNER)
         drawT(updated)
+        
+        p.stroke(0)
+        p.fill(255)
+        p.rectMode(p.CORNERS)
+        p.rect(0, p.height, 150, p.height - 20)
+        
+        p.fill(0)
+        p.text(date, 5, p.height - 5)
 
 
 if __name__ == '__main__':
