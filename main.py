@@ -77,6 +77,18 @@ def average(image, area):
     return averageColors(colors)
 
 
+def county_to_coordinates(county):
+    x = (ord(county[0]) - ord('A')) / 25.0
+    y = (ord(county[1]) - ord('a')) / 25.0
+    print (x, y)
+    r1 = random.normalvariate(0, 25)
+    r2 = random.normalvariate(0, 25)
+    
+    x_constrain = p.constrain(x * p.width + r1, 1, p.width - 1)
+    y_constrain = p.constrain(y * p.height + r2, 1, p.height - 1)
+    return (x_constrain, y_constrain)
+    
+
 TREE = [(0, 0, 500, 500)]
 
 class HelloProcessing(PApplet):
@@ -94,11 +106,10 @@ class HelloProcessing(PApplet):
     
     def draw(self):
         global TREE, READER
-        date, location = READER.next()
+        date, county = READER.next()
         
-        r1 = random.normalvariate(350, 100)
-        r2 = random.normalvariate(350, 100)
-        TREE, updated = insert(TREE, p.constrain(r1, 1, 499), p.constrain(r2, 1, 499))
+        x, y = county_to_coordinates(county)
+        TREE, updated = insert(TREE, x, y)
         
         p.noStroke()
         p.rectMode(p.CORNER)
