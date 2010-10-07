@@ -4,6 +4,7 @@ import csv
 import random
 
 READER = None
+COUNTY_TO_COORDINATES = None
 
 def in_box(x, y, (x_box, y_box, width, height)):
     return (x_box < x < x_box + width) and (y_box < y < y_box + height)
@@ -78,26 +79,48 @@ def average(image, area):
 
 
 def county_to_coordinates(county):
-    x = (ord(county[0]) - ord('A')) / 25.0
-    y = (ord(county[1]) - ord('a')) / 25.0
-    print (x, y)
-    r1 = random.normalvariate(0, 25)
-    r2 = random.normalvariate(0, 25)
+    global COUNTY_TO_COORDINATES
     
-    x_constrain = p.constrain(x * p.width + r1, 1, p.width - 1)
-    y_constrain = p.constrain(y * p.height + r2, 1, p.height - 1)
+    if county not in COUNTY_TO_COORDINATES:
+        print 'unknown county:', county
+        raise Exception('not in coord')
+    
+    r_lat = random.normalvariate(0, 0.0114597)
+    r_lng = random.normalvariate(0, 0.4245944)
+    
+    lat, lng = COUNTY_TO_COORDINATES[county]
+    x = -82.89855072463796 * lng - 6736.318260869589 + r_lng
+    y = 117.03511053316019 * lat - 5031.944083224978 + r_lat
+    
+    if x < 0 or x > p.width or y < 0 or y > p.height:
+        print 'outside boundaries'
+        raise Exception('outside')
+    
+    print (x, y)
+    
+    x_constrain = p.constrain(x, 1, p.width - 1)
+    y_constrain = p.constrain(y, 1, p.height - 1)
     return (x_constrain, y_constrain)
     
+def load_coordinates():
+    reader = csv.reader(file('counties.csv'))
+    d = {}
+    for county, lat, lon in reader:
+        d[county] = (float(lat), float(lon))
+    return d
+
 
 TREE = [(0, 0, 500, 500)]
 
 class HelloProcessing(PApplet):
 
     def setup(self):
-        global IMAGE, READER, p
+        global IMAGE, READER, COUNTY_TO_COORDINATES, p
         p = self
         p.size(500, 500)
         p.frameRate(10)
+        
+        COUNTY_TO_COORDINATES = load_coordinates()
         
         IMAGE = p.loadImage('michigan.jpg')
         IMAGE.loadPixels()
@@ -108,7 +131,10 @@ class HelloProcessing(PApplet):
         global TREE, READER
         date, county = READER.next()
         
-        x, y = county_to_coordinates(county)
+        try:
+            x, y = county_to_coordinates(county)
+        except Exception:
+            return
         TREE, updated = insert(TREE, x, y)
         
         p.noStroke()
